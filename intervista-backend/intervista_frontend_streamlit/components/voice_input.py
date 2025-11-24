@@ -28,9 +28,10 @@ threading.Thread(target=tts_worker, daemon=True).start()
 # ---------------------------
 def get_voice_input() -> str:
     r = sr.Recognizer()
+    r.pause_threshold = 1.0  # allow brief pauses
     with sr.Microphone() as source:
         print("🎙️ Listening... Speak now!")
-        audio = r.listen(source, phrase_time_limit=100)
+        audio = r.listen(source,timeout=None, phrase_time_limit=None)
     try:
         return r.recognize_google(audio)
     except sr.UnknownValueError:
