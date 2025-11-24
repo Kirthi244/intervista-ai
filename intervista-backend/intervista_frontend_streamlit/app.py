@@ -81,62 +81,6 @@ with st.sidebar:
 st.markdown(f"### Turn: {st.session_state.turn_count}/{TOTAL_TURNS}")
 st.progress(min(st.session_state.turn_count / TOTAL_TURNS, 1.0))
 
-def handle_answer():
-    user_input = st.session_state.user_input  # get current input
-    if user_input.strip() == "":
-        return
-
-    # Append user answer
-    st.session_state.history.append({"from": "user", "text": user_input})
-
-    # Prepare payload
-    payload = {
-        "role": st.session_state.role,
-        "question_context": f"Experience: {st.session_state.experience} years",
-        "last_question": st.session_state.question,
-        "user_answer": user_input,
-        "history": st.session_state.history,
-        "turn_count": st.session_state.turn_count
-    }
-
-    # Call backend
-    res = post_interview(payload)
-
-    # Append bot reply
-    bot_reply = res.get("interviewer_reply", "Hmm, can you elaborate?")
-    st.session_state.history.append({"from": "bot", "text": bot_reply})
-
-    # Update for next turn
-    st.session_state.question = res.get("next_question", bot_reply)
-    st.session_state.feedback = res.get("quick_feedback", {})
-    st.session_state.turn_count += 1
-
-    # Speak bot reply automatically
-    speak_text(bot_reply)
-
-    # Clear the input field safely
-    st.session_state.user_input = ""
-
-# ---------------------------
-# Start Interview: First Question
-# ---------------------------
-if st.session_state.turn_count == 1 and not st.session_state.question:
-    # Ask the backend for the first question
-    payload = {
-        "role": st.session_state.role,
-        "question_context": f"Experience: {st.session_state.experience} years",
-        "last_question": "",
-        "user_answer": "",
-        "history": st.session_state.history,
-        "turn_count": st.session_state.turn_count
-    }
-    res = post_interview(payload)
-    first_question = res.get("interviewer_reply", "Let's start the interview!")
-    st.session_state.history.append({"from": "bot", "text": first_question})
-    st.session_state.question = res.get("next_question", first_question)
-    st.session_state.feedback = res.get("quick_feedback", {})
-    speak_text(first_question)
-
 
 # ---------------------------
 # Handle User Answer
